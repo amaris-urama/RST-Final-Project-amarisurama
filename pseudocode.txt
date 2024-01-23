@@ -1,0 +1,81 @@
+// Cheskers game pseudocode
+
+// Initialize game board and players
+initializeGame();
+
+// Main game loop
+while (gameNotOver) {
+  // Display game board
+  displayGameBoard();
+
+  // Get current player's move
+  const move = getPlayerMove();
+
+  // Validate and apply the move
+  if (isValidMove(move)) {
+    applyMove(move);
+  } else {
+    displayInvalidMoveMessage();
+    continue;
+  }
+
+  // Check for game over condition
+  if (isGameOver()) {
+    displayGameOverMessage();
+    break;
+  }
+
+  // Switch to the next player
+  switchPlayer();
+}
+
+// Function to initialize the game board and players
+function initializeGame() {
+  // Initialize game board with starting positions
+  // Initialize players with their respective properties
+}
+
+// Function to display the game board
+function displayGameBoard() {
+  // Display the game board using the GUI
+}
+
+// Function to get the current player's move
+function getPlayerMove() {
+  // Get the move from the player using the GUI
+  // Return the move as an object or data structure
+}
+
+// Function to validate if a move is valid
+function isValidMove(move) {
+  // Check if the move is valid based on game rules
+  // Return true or false
+}
+
+// Function to apply a valid move to the game board
+function applyMove(move) {
+  // Update the game board based on the move
+}
+
+// Function to display an invalid move message
+function displayInvalidMoveMessage() {
+  // Display a message to the player indicating the move is invalid
+}
+
+// Function to check if the game is over
+function isGameOver() {
+  // Check if the game over condition is met
+  // Return true or false
+}
+
+// Function to display the game over message
+function displayGameOverMessage() {
+  // Display a message to the players indicating the game is over
+}
+
+// Function to switch to the next player
+function switchPlayer() {
+  // Switch to the next player based on the game rules
+}
+2719
+2920

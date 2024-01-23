@@ -1,0 +1,597 @@
+
+
+// js function for board
+class Board {
+    constructor(empty) {
+        this.squares = new Array(8).fill(null).map(() => new Array(8).fill(null));
+        this.initSquares();
+        if (!empty) this.setupPieces();
+    }
+
+    // sets up the board (without pieces)
+    initSquares() {
+        for (let j = 0; j < 8; j++) {
+            for (let i = 0; i < 8; i++) {
+                if ((i + j) % 2 === 0) {
+                    this.squares[i][j] = new Square(false);
+                } else {
+                    this.squares[i][j] = new Square(true);
+                }
+            }
+        }
+    }
+
+    // add all the pieces to the board
+    setupPieces() {
+        // knight and bishop test set, empty, outofbounds, friendly piece, enemy piece moves all tested 
+        // this.addPiece(1, 3, Piece.Type.Bishop, true);
+        // this.addPiece(3, 5, Piece.Type.Knight, true);
+        // this.addPiece(4, 2, Piece.Type.King, true);
+        // this.addPiece(3, 1, Piece.Type.Pawn, false);
+        // this.addPiece(5, 1, Piece.Type.Pawn, false);
+        // this.addPiece(5, 3, Piece.Type.Pawn, false);
+        // this.addPiece(3, 3, Piece.Type.Pawn, false);
+        // this.addPiece(6, 4, Piece.Type.Pawn, false);
+
+        // this players set up
+        this.addPiece(0, 5, Piece.Type.Pawn, true);
+        this.addPiece(1, 6, Piece.Type.Pawn, true);
+        this.addPiece(2, 5, Piece.Type.Pawn, true);
+        this.addPiece(3, 6, Piece.Type.Pawn, true);
+        this.addPiece(4, 5, Piece.Type.Pawn, true);
+        this.addPiece(5, 6, Piece.Type.Pawn, true);
+        this.addPiece(6, 5, Piece.Type.Pawn, true);
+        this.addPiece(7, 6, Piece.Type.Pawn, true);
+        this.addPiece(0, 7, Piece.Type.Bishop, true);
+        this.addPiece(2, 7, Piece.Type.King, true);
+        this.addPiece(4, 7, Piece.Type.King, true);
+        this.addPiece(6, 7, Piece.Type.Knight, true);
+
+        // other players set up
+        this.addPiece(0, 1, Piece.Type.Pawn, false);
+        this.addPiece(1, 2, Piece.Type.Pawn, false);
+        this.addPiece(2, 1, Piece.Type.Pawn, false);
+        this.addPiece(3, 2, Piece.Type.Pawn, false);
+        this.addPiece(4, 1, Piece.Type.Pawn, false);
+        this.addPiece(5, 2, Piece.Type.Pawn, false);
+        this.addPiece(6, 1, Piece.Type.Pawn, false);
+        this.addPiece(7, 2, Piece.Type.Pawn, false);
+        this.addPiece(7, 0, Piece.Type.Bishop, false);
+        this.addPiece(5, 0, Piece.Type.King, false);
+        this.addPiece(3, 0, Piece.Type.King, false);
+        this.addPiece(1, 0, Piece.Type.Knight, false);
+    }
+
+    // add an individual piece to the board 
+    addPiece(i, j, type, mine) {
+        switch (type) {
+            case Piece.Type.Pawn:
+                this.squares[i][j].setPiece(new Pawn(this, mine, i, j));
+                break;
+            case Piece.Type.Knight:
+                this.squares[i][j].setPiece(new Knight(this, mine, i, j));
+                break;
+            case Piece.Type.Bishop:
+                this.squares[i][j].setPiece(new Bishop(this, mine, i, j));
+                break;
+            case Piece.Type.King:
+                this.squares[i][j].setPiece(new King(this, mine, i, j));
+                break;
+        }
+    }
+
+    // getter
+    getSquares() {
+        return this.squares;
+    }
+
+    // rotates the board for the opponent player
+    flipBoard() {
+        const flippedBoard = new Board(true);
+        for (let j = 0; j < 8; j++) {
+            for (let i = 0; i < 8; i++) {
+                if (!this.squares[i][j].getEmpty()) {
+                    const p = this.squares[i][j].getPiece();
+                    flippedBoard.addPiece(7 - i, 7 - j, p.type, !p.getMine());
+                }
+            }
+        }
+        return flippedBoard;
+    }
+
+    // so we have some form of ui
+    printBoard() {
+        console.log("  0 1 2 3 4 5 6 7");
+        for (let j = 0; j < 8; j++) {
+            let row = j + " ";
+            for (let i = 0; i < 8; i++) {
+                try {
+                    const piece = this.squares[i][j].getPiece();
+                    if (piece instanceof Pawn) {
+                        row += piece.mine ? "P " : "p ";
+                    } else if (piece instanceof Knight) {
+                        row += piece.mine ? "N " : "n ";
+                    } else if (piece instanceof Bishop) {
+                        row += piece.mine ? "B " : "b ";
+                    } else if (piece instanceof King) {
+                        row += piece.mine ? "K " : "k ";
+                    }
+                } catch (npe) {
+                    row += "_ ";
+                }
+            }
+            console.log(row);
+        }
+        console.log();
+    }
+}
+
+
+
+//java function for game
+class Game {
+    constructor() {
+        this.round = 1;
+        this.player1 = new Player();
+        this.player2 = new Player();
+    }
+
+    play() {
+        while (true) {
+            if (this.player1.hasLost()) {
+                console.log("player 1 loses");
+                break;
+            }
+            console.log(`\n\n\n\n\n\n\n\nTurn num: ${this.round}`);
+            console.log("PLAYER 1");
+            this.player1.getBoard().printBoard();
+            this.player1.generateMoves();
+            this.player1.makeMove();
+            this.player1.getBoard().printBoard();
+            this.player2.setBoard(this.player1.board.flipBoard());
+
+            if (this.player2.hasLost()) {
+                console.log("player 2 loses");
+                break;
+            }
+            console.log("\nPLAYER 2");
+            this.player2.getBoard().printBoard();
+            this.player2.hasLost();
+            this.player2.generateMoves();
+            this.player2.makeMove();
+            this.player2.getBoard().printBoard();
+            this.player1.setBoard(this.player2.board.flipBoard());
+
+            this.round++;
+        }
+    }
+}
+
+class Player {
+    constructor() {
+        this.board = new Board();
+    }
+
+    hasLost() {
+        // Check if the player has lost the game
+    }
+
+    generateMoves() {
+        // Generate possible moves for the player
+    }
+
+    makeMove() {
+        // Make a move based on the generated moves
+    }
+
+    getBoard() {
+        return this.board;
+    }
+
+    setBoard(board) {
+        this.board = board;
+    }
+}
+
+class Board {
+    constructor() {
+        // Initialize the board
+    }
+
+    printBoard() {
+        // Print the current state of the board
+    }
+
+    flipBoard() {
+        // Flip the board
+    }
+}
+
+
+
+
+
+
+// java function for king's move
+import { Piece } from "./Piece.js";
+
+export class King extends Piece {
+  constructor(b, mine, x, y) {
+    super(b, mine, x, y);
+    this.type = Piece.Type.King;
+  }
+
+  generateMoveList() {
+    this.moves = [];
+    this.mustMove = false;
+
+    // check if we have to move
+    try {
+      if (
+        !this.b.getSquares()[this.x + 1][this.y - 1].piece.mine &&
+        this.b.getSquares()[this.x + 2][this.y - 2].empty
+      ) {
+        this.mustMove = true;
+      }
+    } catch (ArrayIndexOutOfBoundsException) {} catch (NullPointerException) {}
+
+    try {
+      if (
+        !this.b.getSquares()[this.x - 1][this.y - 1].piece.mine &&
+        this.b.getSquares()[this.x - 2][this.y - 2].empty
+      ) {
+        this.mustMove = true;
+      }
+    } catch (ArrayIndexOutOfBoundsException) {} catch (NullPointerException) {}
+
+    try {
+      if (
+        !this.b.getSquares()[this.x + 1][this.y + 1].piece.mine &&
+        this.b.getSquares()[this.x + 2][this.y + 2].empty
+      ) {
+        this.mustMove = true;
+      }
+    } catch (ArrayIndexOutOfBoundsException) {} catch (NullPointerException) {}
+
+    try {
+      if (
+        !this.b.getSquares()[this.x - 1][this.y + 1].piece.mine &&
+        this.b.getSquares()[this.x - 2][this.y + 2].empty
+      ) {
+        this.mustMove = true;
+      }
+    } catch (ArrayIndexOutOfBoundsException) {} catch (NullPointerException) {}
+
+    // not capturing
+    if (!this.mustMove) {
+      try {
+        if (this.b.getSquares()[this.x + 1][this.y - 1].empty) {
+          this.moves.push(
+            new Move(this.x, this.y, this.x + 1, this.y - 1, null)
+          );
+        }
+      } catch (ArrayIndexOutOfBoundsException) {}
+      try {
+        if (this.b.getSquares()[this.x - 1][this.y - 1].empty) {
+          this.moves.push(
+            new Move(this.x, this.y, this.x - 1, this.y - 1, null)
+          );
+        }
+      } catch (ArrayIndexOutOfBoundsException) {}
+      try {
+        if (this.b.getSquares()[this.x + 1][this.y + 1].empty) {
+          this.moves.push(
+            new Move(this.x, this.y, this.x + 1, this.y + 1, null)
+          );
+        }
+      } catch (ArrayIndexOutOfBoundsException) {}
+      try {
+        if (this.b.getSquares()[this.x - 1][this.y + 1].empty) {
+          this.moves.push(
+            new Move(this.x, this.y, this.x - 1, this.y + 1, null)
+          );
+        }
+      } catch (ArrayIndexOutOfBoundsException) {}
+    }
+
+    // hoping and capturing
+    if (this.mustMove) {
+      try {
+        if (
+          !this.b.getSquares()[this.x - 1][this.y - 1].piece.mine &&
+          this.b.getSquares()[this.x - 2][this.y - 2].empty
+        ) {
+          this.moves.push(
+            new Move(
+              this.x,
+              this.y,
+              this.x - 2,
+              this.y - 2,
+              new ArrayList<Piece>(Arrays.asList(
+                this.b.getSquares()[this.x - 1][this.y - 1].piece
+              )))
+          );
+        }
+      } catch (ArrayIndexOutOfBoundsException) {} catch (NullPointerException) {}
+
+      try {
+        if (
+          !this.b.getSquares()[this.x + 1][this.y - 1].piece.mine &&
+          this.b.getSquares()[this.x + 2][this.y - 2].empty
+        ) {
+          this.moves.push(
+            new Move(
+              this.x,
+              this.y,
+              this.x + 2,
+              this.y - 2,
+              new ArrayList<Piece>(Arrays.asList(
+                this.b.getSquares()[this.x + 1][this.y - 1].piece
+
+
+
+
+
+//java function for pawn's move
+import { Piece } from "./Piece.js";
+
+export class Pawn extends Piece {
+  constructor(b, mine, x, y) {
+    super(b, mine, x, y);
+    this.type = Piece.Type.Pawn;
+  }
+
+  generateMoveList() {
+    this.moves = [];
+    this.mustMove = false;
+
+    // check if we have to move
+    try {
+      if (
+        !this.b.getSquares()[this.x + 1][this.y - 1].getPiece().getMine() &&
+        this.b.getSquares()[this.x + 2][this.y - 2].getEmpty()
+      ) {
+        this.mustMove = true;
+      }
+    } catch (error) {}
+
+    try {
+      if (
+        !this.b.getSquares()[this.x - 1][this.y - 1].getPiece().getMine() &&
+        this.b.getSquares()[this.x - 2][this.y - 2].getEmpty()
+      ) {
+        this.mustMove = true;
+      }
+    } catch (error) {}
+
+    // not capturing
+    if (!this.mustMove) {
+      try {
+        if (this.b.getSquares()[this.x + 1][this.y - 1].getEmpty()) {
+          this.moves.push(
+            new Move(this.x, this.y, this.x + 1, this.y - 1, null)
+          );
+        }
+      } catch (error) {}
+      try {
+        if (this.b.getSquares()[this.x - 1][this.y - 1].getEmpty()) {
+          this.moves.push(
+            new Move(this.x, this.y, this.x - 1, this.y - 1, null)
+          );
+        }
+      } catch (error) {}
+    }
+
+    // hoping and capturing
+    if (this.mustMove) {
+      try {
+        if (
+          !this.b.getSquares()[this.x - 1][this.y - 1].getPiece().getMine() &&
+          this.b.getSquares()[this.x - 2][this.y - 2].getEmpty()
+        ) {
+          this.moves.push(
+            new Move(
+              this.x,
+              this.y,
+              this.x - 2,
+              this.y - 2,
+              new ArrayList<Piece>(Arrays.asList(this.b.getSquares()[this.x - 1][this.y - 1].getPiece()))
+            )
+          );
+        }
+      } catch (error) {}
+
+      try {
+        if (
+          !this.b.getSquares()[this.x + 1][this.y - 1].getPiece().getMine() &&
+          this.b.getSquares()[this.x + 2][this.y - 2].getEmpty()
+        ) {
+          this.moves.push(
+            new Move(
+              this.x,
+              this.y,
+              this.x + 2,
+              this.y - 2,
+              new ArrayList<Piece>(Arrays.asList(this.b.getSquares()[this.x + 1][this.y - 1].getPiece()))
+            )
+          );
+        }
+      } catch (error) {}
+    }
+  }
+}
+
+
+
+
+// java function for piece move
+class Piece {
+    constructor(b, mine, i, j) {
+        this.b = b;
+        this.mine = mine;
+        this.x = i;
+        this.y = j;
+        this.moves = [];
+        this.mustMove = false;
+    }
+
+    generateMoveList() {
+        // Code for generating move list
+    }
+
+    getMoveList() {
+        return this.moves;
+    }
+
+    getMine() {
+        return this.mine;
+    }
+
+    canMove() {
+        return this.moves.length > 0;
+    }
+}
+
+Piece.Type = {
+    Pawn: 'Pawn',
+    Bishop: 'Bishop',
+    Knight: 'Knight',
+    King: 'King'
+};
+
+
+
+
+//java function for player
+import { Board } from './Board.js';
+
+class Player {
+    constructor() {
+        this.board = new Board(false);
+        this.mandatoryMoveFound = false;
+        this.r = new Random();
+    }
+
+    getBoard() {
+        return this.board;
+    }
+
+    setBoard(newBoard) {
+        this.board = newBoard;
+    }
+
+    //return true if they've lost
+    hasLost() {
+        let numOfKings = 0;
+        for (let j = 0; j < 8; j++) {
+            for (let i = 0; i < 8; i++) {
+                try {
+                    if (this.board.getSquares()[i][j].getPiece().getMine() && this.board.getSquares()[i][j].getPiece().type === Piece.Type.King) {
+                        numOfKings++;
+                    }
+                } catch (NullPointerException) {}
+            }
+        }
+        return numOfKings === 0;
+    }
+
+    generateMoves() {
+        //look through pawn and king moves
+        for (let j = 0; j < 8; j++) {
+            for (let i = 0; i < 8; i++) {
+                try {
+                    if (this.board.getSquares()[i][j].getPiece().getMine()) {
+                        if (this.board.getSquares()[i][j].getPiece().type === Piece.Type.Pawn || this.board.getSquares()[i][j].getPiece().type === Piece.Type.King) {
+                            this.board.getSquares()[i][j].getPiece().generateMoveList();
+                            if (this.board.getSquares()[i][j].getPiece().mustMove) {
+                                this.mandatoryMoveFound = true;
+                            }
+                        }
+                    }
+                } catch (NullPointerException) {}
+            }
+        }
+
+        //look through knight and bishop moves only if theres not a mandatory pawn or king move
+        if (!this.mandatoryMoveFound) {
+            for (let j = 0; j < 8; j++) {
+                for (let i = 0; i < 8; i++) {
+                    try {
+                        if (this.board.getSquares()[i][j].getPiece().getMine()) {
+                            if (this.board.getSquares()[i][j].getPiece().type === Piece.Type.Knight || this.board.getSquares()[i][j].getPiece().type === Piece.Type.Bishop) {
+                                this.board.getSquares()[i][j].getPiece().generateMoveList();
+                            }
+                        }
+                    } catch (NullPointerException) {}
+                }
+            }
+        }
+    }
+
+    makeMove() {
+        let moves = [];
+
+        //add all the possible moves to the move list
+        for (let j = 0; j < 8; j++) {
+            for (let i = 0; i < 8; i++) {
+                try {
+                    if (this.board.getSquares()[i][j].getPiece().getMine()) {
+                        moves.push(...this.board.getSquares()[i][j].getPiece().moves);
+                    }
+                } catch (NullPointerException) {}
+            }
+        }
+
+        //remove all moves that dont capture pieces
+        if (this.mandatoryMoveFound) {
+            console.log("mandatory move");
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].taking === null) {
+                    console.log("Removing");
+                    moves[i].printMove();
+                    moves.splice(i, 1);
+                    i--;
+                } else {
+                    console.log("all good");
+                    moves[i].printMove();
+                }
+            }
+        }
+
+        console.log("Possible moves:");
+        for (let i = 0; i < moves.length; i++) {
+            moves[i].printMove();
+        }
+        console.log("\n\nPicked move:");
+
+        //pick a random move
+        let m = moves[this.r.nextInt(moves.length)];
+        m.printMove();
+
+        //make it
+        this.board.getSquares()[m.toI][m.toJ].setPiece(this.board.getSquares()[m.fromI][m.fromJ].getPiece());
+        this.board.getSquares()[m.fromI][m.fromJ].removePiece();
+        if (m.taking !== null) {
+            for (let j = 0; j < 8; j++) {
+                for (let i = 0; i < 8; i++) {
+                    try {
+                        if (m.taking.contains(this.board.getSquares()[i][j].getPiece())) {
+                            this.board.getSquares()[i][j].removePiece();
+                        }
+                    } catch (NullPointerException) {}
+                }
+            }
+        }
+
+        this.mandatoryMoveFound = false;
+    }
+}
+
+
+
+
+//
+1677
+script.js:4885
+index.html: 1860
+style.css : 1412
